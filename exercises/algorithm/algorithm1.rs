@@ -2,10 +2,10 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
+#[allow(unused_imports)]
 use std::vec::*;
 
 #[derive(Debug)]
@@ -69,13 +69,51 @@ impl<T> LinkedList<T> {
             },
         }
     }
+
+    fn add_node(&mut self, node: NonNull<Node<T>>) {
+        let node_ptr = Some(node);
+        match self.end {
+            None => self.start = node_ptr,
+            Some(end_ptr) => unsafe { (*end_ptr.as_ptr()).next = node_ptr },
+        }
+        self.end = node_ptr;
+        self.length += 1;
+    }
+
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
+	where T:PartialOrd{
 		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+		match (list_a.start, list_b.start) {
+            (None, None) => LinkedList::new(),
+            (Some(_), None) => list_a,
+            (None, Some(_)) => list_b,
+            (Some(mut a), Some(mut b)) => {
+                let mut merged_list = LinkedList::new();
+                loop {
+                    let a_val = unsafe { a.as_ref() };
+                    let b_val = unsafe { b.as_ref() };
+                    if a_val.val < b_val.val {
+                        merged_list.add_node(a);
+                        match a_val.next {
+                            Some(next) => a = next,
+                            None => {
+                                merged_list.add_node(b);
+                                break;
+                            }
+                        }
+                    } else {
+                        merged_list.add_node(b);
+                        match b_val.next {
+                            Some(next) => b = next,
+                            None => {
+                                merged_list.add_node(a);
+                                break;
+                            }
+                        }
+                    }
+                }
+                merged_list
+            }
         }
 	}
 }
